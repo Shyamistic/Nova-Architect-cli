@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Architect — Build AWS from English</title>
+  <!-- Fonts: IBM Plex Sans (Display) and JetBrains Mono (Code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0a0e1a;
+      /* Deep navy — AWS Console dark */
+      --bg-surface: #111827;
+      /* Cards, panels */
+      --bg-raised: #1a2235;
+      /* Inputs, hover states */
+      --bg-overlay: #1f2d42;
+      /* Modals, dropdowns */
+
+      --border-subtle: #1e2d45;
+      /* Most borders */
+      --border-default: #2a3f5f;
+      /* Active borders */
+      --border-strong: #3b5278;
+      /* Emphasis borders */
+
+      --accent-aws: #FF9900;
+      /* Amazon Orange — primary action */
+      --accent-aws-dim: rgba(255, 153, 0, 0.12);
+      --accent-blue: #00A8E1;
+      /* AWS Blue — links, secondary */
+      --accent-purple: #8B5CF6;
+      /* Nova Act indicator */
+
+      --status-success: #10B981;
+      --status-warning: #F59E0B;
+      --status-error: #EF4444;
+      --status-info: #3B82F6;
+
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #475569;
+      --text-code: #7DD3FC;
+      /* Light blue for resource names */
+
+      --font-display: 'IBM Plex Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      /* Subtle layout fade-in */
+      animation: pageFadeIn 0.8s ease-out;
+    }
+
+    @keyframes pageFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── HEADER ── */
+    header {
+      height: 56px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      color: var(--accent-aws);
+      font-size: 24px;
+    }
+
+    .logo-text {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text span {
+      font-weight: 300;
+      opacity: 0.7;
+    }
+
+    .model-status-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    .status-pill.active {
+      border-color: var(--accent-blue);
+      color: var(--text-primary);
+    }
+
+    .status-pill.running {
+      border-color: var(--accent-purple);
+      color: var(--text-primary);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .active .status-dot {
+      background: var(--accent-blue);
+      box-shadow: 0 0 6px var(--accent-blue);
+    }
+
+    .running .status-dot {
+      background: var(--accent-purple);
+      animation: pulse-purple 1.5s infinite;
+    }
+
+    @keyframes pulse-purple {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .account-badge {
+      background: var(--bg-overlay);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-default);
+    }
+
+    .account-badge span {
+      color: var(--accent-aws);
+    }
+
+    /* ── LAYOUT ── */
+    main {
+      display: grid;
+      grid-template-columns: 380px 1fr 300px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    .panel:last-child {
+      border-right: none;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: var(--bg-surface);
+    }
+
+    .panel-section {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      overflow-y: auto;
+    }
+
+    .section-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-area {
+      position: relative;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 16px;
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-size: 14px;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--accent-aws);
+    }
+
+    .input-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .input-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn-main {
+      background: var(--accent-aws);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      flex: 1;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    .btn-main:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 153, 0, 0.3);
+    }
+
+    .btn-icon {
+      background: var(--bg-raised);
+      color: var(--text-primary);
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-icon:hover {
+      background: var(--bg-overlay);
+      border-color: var(--text-muted);
+    }
+
+    .btn-voice.active {
+      color: var(--status-error);
+      border-color: var(--status-error);
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    /* Templates Grid */
+    .templates-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .template-card {
+      background: var(--bg-base);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .template-card:hover {
+      border-color: var(--accent-aws);
+      transform: translateY(-2px);
+      background: var(--bg-raised);
+    }
+
+    .template-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .template-label {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .template-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      justify-content: center;
+    }
+
+    .tag-badge {
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: var(--accent-blue);
+      background: rgba(0, 168, 225, 0.1);
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    /* Architecture Plan */
+    .service-card {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideUp 0.3s ease-out both;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .svc-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-overlay);
+      font-size: 16px;
+    }
+
+    .svc-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .svc-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .svc-meta {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .svc-status-icon {
+      font-size: 14px;
+    }
+
+    .pending {
+      color: var(--text-muted);
+    }
+
+    .active {
+      color: var(--accent-purple);
+    }
+
+    .success {
+      color: var(--status-success);
+    }
+
+    .error {
+      color: var(--status-error);
+    }
+
+    /* History */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item {
+      padding: 10px;
+      border-radius: 4px;
+      background: var(--bg-base);
+      border-left: 3px solid var(--border-default);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .history-item:hover {
+      background: var(--bg-raised);
+    }
+
+    .history-time {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .history-text {
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--text-secondary);
+      height: 1.4em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── CENTER PANEL ── */
+    .center-panel {
+      background: var(--bg-base);
+      position: relative;
+    }
+
+    .browser-chrome {
+      margin: 24px;
+      background: #1C2433;
+      /* Dark chrome */
+      border-radius: 12px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+    }
+
+    .chrome-header {
+      height: 48px;
+      background: #161B22;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .chrome-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .chrome-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+
+    .red {
+      background: #ff5f56;
+    }
+
+    .yellow {
+      background: #ffbd2e;
+    }
+
+    .green {
+      background: #27c93f;
+    }
+
+    .chrome-url {
+      flex: 1;
+      background: #0D1117;
+      border-radius: 4px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .live-label {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--status-error);
+      border: 1px solid var(--status-error);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      display: none;
+    }
+
+    .live-label.active {
+      display: block;
+      animation: blink 1.2s infinite;
+    }
+
+    .viewport {
+      flex: 1;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #screenshot-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: top;
+    }
+
+    .thinking-overlay {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      background: rgba(10, 14, 26, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--accent-purple);
+      border-radius: 8px;
+      padding: 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      animation: slideInBottom 0.3s ease-out;
+    }
+
+    @keyframes slideInBottom {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .thinking-overlay.active {
+      display: flex;
+    }
+
+    .pulse-icon {
+      width: 12px;
+      height: 12px;
+      background: var(--accent-purple);
+      border-radius: 50%;
+      animation: pulse-purple 1s infinite;
+    }
+
+    .thinking-content {
+      flex: 1;
+    }
+
+    .thinking-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-purple);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .thinking-text {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+
+    .placeholder-view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      gap: 16px;
+    }
+
+    .placeholder-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      opacity: 0.2;
+    }
+
+    .placeholder-icon {
+      font-size: 48px;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      background: var(--bg-surface);
+    }
+
+    /* Nova Sonic Viz */
+    .viz-container {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 24px;
+    }
+
+    .vbar {
+      width: 4px;
+      height: 4px;
+      background: var(--accent-purple);
+      border-radius: 2px;
+      transition: height 0.1s;
+    }
+
+    .viz-active .vbar {
+      animation: viz-anim 0.5s infinite alternate;
+    }
+
+    @keyframes viz-anim {
+      from {
+        height: 4px;
+      }
+
+      to {
+        height: 40px;
+      }
+    }
+
+    /* Stagger bars */
+    .vbar:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .vbar:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    .vbar:nth-child(4) {
+      animation-delay: 0.3s;
+    }
+
+    .vbar:nth-child(5) {
+      animation-delay: 0.2s;
+    }
+
+    .vbar:nth-child(6) {
+      animation-delay: 0.1s;
+    }
+
+    /* Progress Tracker */
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .progress-val {
+      font-weight: 700;
+      color: var(--accent-aws);
+    }
+
+    .progress-bar-container {
+      height: 4px;
+      background: var(--bg-overlay);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-aws);
+      transition: width 0.4s ease-out;
+    }
+
+    .stopwatch {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin: 16px 0;
+      color: var(--text-primary);
+    }
+
+    /* Activity Log */
+    .log-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .log-entries {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 24px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-entry {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 8px;
+      border-radius: 4px;
+      border-left: 2px solid transparent;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .log-entry.info {
+      border-left-color: var(--text-muted);
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .log-entry.success {
+      border-left-color: var(--status-success);
+      color: var(--status-success);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .log-entry.error {
+      border-left-color: var(--status-error);
+      color: var(--status-error);
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .log-entry.nova {
+      border-left-color: var(--accent-purple);
+      color: #a78bfa;
+      background: rgba(139, 92, 246, 0.05);
+    }
+
+    .log-timestamp {
+      opacity: 0.4;
+      margin-right: 8px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      height: 32px;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .footer-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+
+    .footer-dot.ready {
+      background: var(--status-success);
+    }
+
+    /* ── MODALS ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      overflow: hidden;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.6);
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-aws);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 24px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      gap: 12px;
+    }
+
+    .code-block {
+      background: #0D1117;
+      border: 1px solid var(--border-default);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-code);
+      white-space: pre;
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-default);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg-raised);
+      color: var(--text-primary);
+    }
+
+    /* Confetti */
+    .confetti-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2000;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-strong);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo-group">
+      <div class="logo-icon">⚡</div>
+      <h1 class="logo-text">Nova <span>Architect</span></h1>
+    </div>
+    <div class="model-status-group">
+      <div class="status-pill active" title="Model: Amazon Nova 2 Lite">
+        <div class="status-dot"></div>
+        Nova 2 Lite
+      </div>
+      <div class="status-pill" id="act-status-pill">
+        <div class="dot status-dot"></div>
+        Nova Act
+      </div>
+      <div class="status-pill active">
+        <div class="status-dot"></div>
+        Voice Ready
+      </div>
+    </div>
+    <div class="account-badge" id="account-info">
+      Region: <span id="aws-region">us-east-1</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: Inputs & Planning -->
+    <div class="panel left-panel">
+      <div class="panel-section">
+        <div class="section-header">Architecture Designer</div>
+        <div class="input-area">
+          <textarea id="requirement-input"
+            placeholder="e.g. A photo sharing app with S3 for storage, Lambda for processing, and DynamoDB for metadata..."></textarea>
+          <div class="input-actions">
+            <button class="btn-main" id="submit-btn" onclick="submitRequest()">⚡ Design & Build</button>
+            <button class="btn-icon btn-voice" id="voice-btn" title="Voice Input" onclick="toggleVoice()">🎙️</button>
+            <button class="btn-icon" title="Upload Diagram"
+              onclick="document.getElementById('diagram-input').click()">📐</button>
+            <input type="file" id="diagram-input" style="display:none" accept="image/*"
+              onchange="handleDiagramUpload(event)">
+          </div>
+          <div class="input-hint">⌘ + Enter to submit</div>
+        </div>
+      </div>
+
+      <div class="panel-section" id="templates-section">
+        <div class="section-header">Quick Start Templates</div>
+        <div class="templates-grid" id="templates-grid">
+          <!-- Templates loaded via API -->
+        </div>
+      </div>
+
+      <div class="panel-section" style="display:none" id="plan-section">
+        <div class="section-header">
+          Proposed Architecture
+          <div class="status-pill" id="cost-badge"
+            style="border:none;background:rgba(16,185,129,0.1);color:#10B981;font-size:9px">FREE TIER</div>
+        </div>
+        <div id="services-list">
+          <!-- Progress cards appear here -->
+        </div>
+        <div class="input-actions">
+          <button class="btn-ghost" style="flex:1" onclick="exportCloudFormation()">Export CFN</button>
+        </div>
+      </div>
+
+      <div class="panel-section" id="history-section">
+        <div class="section-header">Build History</div>
+        <div class="history-list" id="history-list">
+          <!-- Build history loaded via API -->
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: Live Viewport -->
+    <div class="panel center-panel">
+      <div class="browser-chrome" id="browser-chrome">
+        <div class="chrome-header">
+          <div class="chrome-dots">
+            <div class="chrome-dot red"></div>
+            <div class="chrome-dot yellow"></div>
+            <div class="chrome-dot green"></div>
+          </div>
+          <div class="chrome-url" id="browser-url">console.aws.amazon.com</div>
+          <div class="live-label" id="live-label">● LIVE</div>
+        </div>
+        <div class="viewport" id="viewport">
+          <div class="placeholder-view" id="viewport-placeholder">
+            <div class="placeholder-grid">
+              <div class="placeholder-icon">🪣</div>
+              <div class="placeholder-icon">λ</div>
+              <div class="placeholder-icon">🗄️</div>
+              <div class="placeholder-icon">🔌</div>
+              <div class="placeholder-icon">📬</div>
+              <div class="placeholder-icon">🔐</div>
+            </div>
+            <div>Waiting for architectural commands...</div>
+          </div>
+          <img id="screenshot-img" alt="AWS Console Screenshot" style="display:none">
+
+          <div class="thinking-overlay" id="thinking-box">
+            <div class="pulse-icon"></div>
+            <div class="thinking-content">
+              <div class="thinking-title">Nova Act Thinking</div>
+              <div class="thinking-text" id="thinking-text">Navigating to S3 console...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Progress & Activity -->
+    <div class="panel right-panel">
+      <div class="panel-section">
+        <div class="section-header">Nova Sonic Audio</div>
+        <div class="viz-container" id="voice-viz">
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+          <div class="vbar"></div>
+        </div>
+        <div id="voice-state"
+          style="text-align:center; font-size:11px; font-family:var(--font-mono); color:var(--text-muted)">READY</div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-header">Build Progress</div>
+        <div class="progress-stats">
+          <span id="progress-task">No Active Build</span>
+          <span class="progress-val" id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="stopwatch" id="stopwatch">00:00:00</div>
+      </div>
+
+      <div class="log-container">
+        <div class="section-header" style="padding: 24px 24px 8px 24px;">Activity Log</div>
+        <div class="log-entries" id="log-entries">
+          <!-- Logs appear here -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-item">
+      <div class="footer-dot ready"></div> Nova Architect v2.0
+    </div>
+    <div class="footer-item">
+      <div class="footer-dot ready"></div> Bedrock Runtime: Active
+    </div>
+    <div class="footer-item">
+      <div class="footer-dot ready"></div> Playwright: Chromium 128
+    </div>
+    <div style="flex:1"></div>
+    <div class="footer-item">© 2026 Amazon Nova Project</div>
+  </footer>
+
+  <!-- Approval Modal -->
+  <div class="modal-overlay" id="approval-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Approve Infrastructure Build</div>
+      </div>
+      <div class="modal-body">
+        <div id="modal-arch-summary" style="font-size:14px; margin-bottom:16px;"></div>
+        <div class="section-header">Architectural Diagram</div>
+        <div class="code-block" id="modal-ascii-diagram"></div>
+        <div style="margin-top:20px; font-size:12px; color:var(--text-secondary);">
+          <strong>Warning:</strong> Clicking 'Approve' will provision real resources in your AWS account. Estimated
+          monthly cost: <span id="modal-cost" style="color:var(--status-success)">$0.00</span>.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-main" onclick="confirmBuild()">⚡ Approve & Build on AWS</button>
+        <button class="btn-ghost" onclick="closeModal('approval-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">CloudFormation Export</div>
+      </div>
+      <div class="modal-body">
+        <div style="font-size:13px; margin-bottom:12px;">Generated CloudFormation YAML (via Nova 2 Lite):</div>
+        <div class="code-block" id="export-yaml-code"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-main" onclick="copyYaml()">Copy YAML</button>
+        <button class="btn-ghost" onclick="closeModal('export-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confetti-container" id="confetti-holder"></div>
+
+  <script>
+    const WS_URL = `ws://${location.host}/ws`;
+    let ws, currentArch = null, isRecording = false, mediaRecorder = null, audioChunks = [];
+    let buildStep = 0, buildTotal = 0, stopwatchInterval = null, startTime = null;
+    let reconnectDelay = 1000;
+
+    // ── Initialization ──
+    window.onload = async () => {
+      connectWS();
+      await loadTemplates();
+      await loadHistory();
+      await checkHealth();
+    };
+
+    // ── WebSocket with Exponential Backoff ──
+    function connectWS() {
+      ws = new WebSocket(WS_URL);
+      ws.onopen = () => {
+        reconnectDelay = 1000;
+        setConn(true);
+        log('Nova Architect connected and ready.', 'success');
+      };
+      ws.onmessage = e => route(JSON.parse(e.data));
+      ws.onclose = () => {
+        setConn(false);
+        log(`Connection lost. Retrying in ${reconnectDelay / 1000}s...`, 'info');
+        setTimeout(connectWS, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+      };
+      ws.onerror = (err) => {
+        console.error("WS Error:", err);
+      };
+    }
+
+    function send(data) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(data));
+      } else {
+        log("Message failed to send. Not connected.", "error");
+      }
+    }
+
+    // ── API Calls ──
+    async function loadTemplates() {
+      const res = await fetch('/api/templates');
+      const data = await res.json();
+      const grid = document.getElementById('templates-grid');
+      grid.innerHTML = data.templates.map(t => `
+                <div class="template-card" onclick="useTemplate('${t.id}')">
+                    <div class="template-icon">${t.icon}</div>
+                    <div class="template-label">${t.label}</div>
+                    <div class="template-tags">
+                        ${t.tags.map(tag => `<span class="tag-badge">${tag}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    async function useTemplate(id) {
+      const res = await fetch('/api/templates');
+      const data = await res.json();
+      const t = data.templates.find(x => x.id === id);
+      if (t) {
+        document.getElementById('requirement-input').value = t.prompt;
+        submitRequest();
+      }
+    }
+
+    async function loadHistory() {
+      const res = await fetch('/api/builds');
+      const data = await res.json();
+      const list = document.getElementById('history-list');
+      if (data.builds.length === 0) {
+        list.innerHTML = '<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:12px;">No previous builds</div>';
+        return;
+      }
+      list.innerHTML = data.builds.map(b => `
+                <div class="history-item" onclick="loadBuildDetail('${b.id}')">
+                    <div class="history-time">${formatTimeAgo(b.timestamp)} · ${b.status}</div>
+                    <div class="history-text">${b.requirement}</div>
+                    <div style="font-size:9px; color:var(--accent-blue); margin-top:4px;">${b.success_count}/${b.total_count} services · ${b.duration_seconds}s</div>
+                </div>
+            `).join('');
+    }
+
+    async function loadBuildDetail(id) {
+      const res = await fetch(`/api/builds/${id}`);
+      const data = await res.json();
+      currentArch = data.architecture;
+      renderArchitecture(currentArch);
+      log(`Loaded historical build for: ${data.requirement.substring(0, 30)}...`, 'info');
+    }
+
+    async function checkHealth() {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        document.getElementById('aws-region').textContent = data.region;
+      } catch (e) { }
+    }
+
+    // ── Router ──
+    function route(m) {
+      switch (m.type) {
+        case 'status': setStatus(m.message); break;
+        case 'thinking': updateThinking(m.text); break;
+        case 'transcription': log(`Voice: "${m.text}"`, 'nova'); break;
+        case 'architecture':
+          currentArch = m.data;
+          renderArchitecture(m.data);
+          break;
+        case 'awaiting_approval':
+          currentArch = m.architecture;
+          showApprovalModal();
+          break;
+        case 'build_started': onBuildStart(); break;
+        case 'build_progress': onBuildProgress(m); break;
+        case 'build_step_complete': onBuildStepComplete(m); break;
+        case 'build_complete': onBuildComplete(m); break;
+        case 'screenshot': updateScreenshot(m.screenshot_b64, m.url); break;
+        case 'audio': queueAudio(m.audio_b64); break;
+        case 'error': log(m.message, 'error'); break;
+      }
+    }
+
+    // ── UI Updates ──
+    function submitRequest() {
+      const text = document.getElementById('requirement-input').value.trim();
+      if (!text) return;
+      send({ type: 'text_requirement', text: text });
+      document.getElementById('plan-section').style.display = 'none';
+      document.getElementById('history-section').style.display = 'none';
+    }
+
+    function renderArchitecture(arch) {
+      const list = document.getElementById('services-list');
+      list.innerHTML = arch.services.map(s => `
+                <div class="service-card" id="svc-${slug(s.name)}">
+                    <div class="svc-icon-box">${getIcon(s.aws_service)}</div>
+                    <div class="svc-details">
+                        <div class="svc-title">${s.name}</div>
+                        <div class="svc-meta">${s.aws_service} · ${s.depends_on.length ? 'Deps: ' + s.depends_on.join(', ') : 'No deps'}</div>
+                    </div>
+                    <div class="svc-status-icon pending" id="stat-${slug(s.name)}">○</div>
+                </div>
+            `).join('');
+      document.getElementById('plan-section').style.display = 'block';
+      document.getElementById('templates-section').style.display = 'none';
+      document.getElementById('cost-badge').textContent = arch.estimated_cost;
+      log(`Designed ${arch.services.length} services via Nova 2 Lite`, 'success');
+    }
+
+    function showApprovalModal() {
+      const summary = document.getElementById('modal-arch-summary');
+      const diagram = document.getElementById('modal-ascii-diagram');
+      const cost = document.getElementById('modal-cost');
+
+      summary.innerHTML = `Nova has designed a <strong>${currentArch.services.length}-service</strong> system including <strong>${currentArch.services.map(s => s.aws_service).join(', ')}</strong>.`;
+      diagram.textContent = currentArch.diagram;
+      cost.textContent = currentArch.estimated_cost;
+
+      document.getElementById('approval-modal').classList.add('active');
+    }
+
+    function confirmBuild() {
+      closeModal('approval-modal');
+      send({ type: 'approve_build', architecture: currentArch });
+    }
+
+    function onBuildStart() {
+      document.getElementById('act-status-pill').classList.add('running');
+      document.getElementById('live-label').classList.add('active');
+      document.getElementById('browser-chrome').style.borderColor = 'var(--accent-purple)';
+      document.getElementById('viewport-placeholder').style.display = 'none';
+      document.getElementById('screenshot-img').style.display = 'block';
+      startStopwatch();
+      log("Nova Act is taking control of the AWS Console...", "nova");
+    }
+
+    function onBuildProgress(m) {
+      const progressPct = Math.round(((m.step - 1) / m.total) * 100);
+      updateProgressBar(progressPct, `Step ${m.step}/${m.total}: ${m.service}`);
+
+      const card = document.getElementById(`svc-${slug(m.service)}`);
+      const stat = document.getElementById(`stat-${slug(m.service)}`);
+      if (card) card.style.borderColor = 'var(--accent-purple)';
+      if (stat) { stat.innerHTML = '●'; stat.className = 'svc-status-icon active'; }
+
+      updateThinking(m.action);
+    }
+
+    function onBuildStepComplete(m) {
+      const card = document.getElementById(`svc-${slug(m.service)}`);
+      const stat = document.getElementById(`stat-${slug(m.service)}`);
+      if (card) card.style.borderColor = m.success ? 'var(--status-success)' : 'var(--status-error)';
+      if (stat) {
+        stat.innerHTML = m.success ? '✓' : '✗';
+        stat.className = `svc-status-icon ${m.success ? 'success' : 'error'}`;
+      }
+      log(`${m.success ? '✅' : '❌'} ${m.service}: ${m.details}`, m.success ? 'success' : 'error');
+      if (m.screenshot_b64) updateScreenshot(m.screenshot_b64);
+    }
+
+    function onBuildComplete(m) {
+      stopStopwatch();
+      updateProgressBar(100, `Build Complete · ${m.success_count}/${m.total} Success`);
+      document.getElementById('act-status-pill').classList.remove('running');
+      document.getElementById('live-label').classList.remove('active');
+      document.getElementById('thinking-box').classList.remove('active');
+
+      triggerConfetti();
+      log(`Build finished in ${document.getElementById('stopwatch').textContent}. All records saved.`, 'success');
+      loadHistory(); // Refresh history
+      document.getElementById('history-section').style.display = 'block';
+    }
+
+    function updateScreenshot(b64, url) {
+      const img = document.getElementById('screenshot-img');
+      img.src = `data:image/jpeg;base64,${b64}`;
+      if (url) document.getElementById('browser-url').textContent = url;
+    }
+
+    function updateThinking(text) {
+      const box = document.getElementById('thinking-box');
+      document.getElementById('thinking-text').textContent = text;
+      box.classList.add('active');
+    }
+
+    function updateProgressBar(pct, task) {
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent = pct + '%';
+      document.getElementById('progress-task').textContent = task;
+    }
+
+    // ── Voice & Audio Queueing ──
+    let audioQueue = [];
+    let isAudioPlaying = false;
+
+    function queueAudio(b64) {
+      audioQueue.push(b64);
+      if (!isAudioPlaying) playNextAudio();
+    }
+
+    function playNextAudio() {
+      if (audioQueue.length === 0) {
+        isAudioPlaying = false;
+        setVoiceVisualizer(false);
+        return;
+      }
+      isAudioPlaying = true;
+      setVoiceVisualizer(true);
+      const b64 = audioQueue.shift();
+      const audio = new Audio("data:audio/mp3;base64," + b64);
+      audio.onended = playNextAudio;
+      audio.play().catch(e => {
+        console.error("Audio block:", e);
+        playNextAudio();
+      });
+    }
+
+    function setVoiceVisualizer(active) {
+      const container = document.getElementById('voice-viz');
+      const state = document.getElementById('voice-state');
+      if (container) container.classList.toggle('viz-active', active);
+      if (state) state.textContent = active ? "SPEAKING..." : "READY";
+    }
+
+    async function toggleVoice() {
+      if (isRecording) {
+        stopRecording();
+      } else {
+        startRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          const arrayBuffer = await blob.arrayBuffer();
+          const b64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+          send({ type: 'voice_requirement', audio_b64: b64 });
+        };
+        mediaRecorder.start();
+        isRecording = true;
+        document.getElementById('voice-btn').classList.add('active');
+        document.getElementById('voice-state').textContent = "LISTENING...";
+        setVoiceVisualizer(true);
+      } catch (err) {
+        log("Microphone access denied.", "error");
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder) mediaRecorder.stop();
+      isRecording = false;
+      document.getElementById('voice-btn').classList.remove('active');
+      document.getElementById('voice-state').textContent = "READY";
+      setVoiceVisualizer(false);
+    }
+
+    // ── CloudFormation Export ──
+    async function exportCloudFormation() {
+      if (!currentArch) return;
+      log("Generating CloudFormation template via Nova 2 Lite...", "info");
+      const res = await fetch('/api/export/cloudformation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ architecture: currentArch })
+      });
+      const data = await res.json();
+      document.getElementById('export-yaml-code').textContent = data.yaml;
+      document.getElementById('export-modal').classList.add('active');
+    }
+
+    function copyYaml() {
+      const text = document.getElementById('export-yaml-code').textContent;
+      navigator.clipboard.writeText(text);
+      log("Template copied to clipboard", "success");
+    }
+
+    // ── Helpers ──
+    function setConn(connected) {
+      const text = connected ? "Connected" : "Reconnecting...";
+      document.querySelectorAll('.footer-dot').forEach(d => d.className = connected ? 'footer-dot ready' : 'footer-dot');
+      log(`System: ${text}`, connected ? 'success' : 'info');
+    }
+
+    function setStatus(msg) {
+      log(`Status: ${msg}`, 'info');
+      document.getElementById('progress-task').textContent = msg;
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function slug(str) { return str.toLowerCase().replace(/[^a-z0-9]/g, '-'); }
+
+    function getIcon(svc) {
+      const icons = { S3: '🪣', Lambda: 'λ', DynamoDB: '🗄️', 'API Gateway': '🔌', SQS: '📬', SNS: '📢', IAM: '🔐', Cognito: '👤', EventBridge: '🗓️' };
+      return icons[svc] || '⚙️';
+    }
+
+    function formatTimeAgo(ts) {
+      const diff = Math.floor((Date.now() / 1000) - ts);
+      if (diff < 60) return 'Just now';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      return Math.floor(diff / 3600) + 'h ago';
+    }
+
+    function startStopwatch() {
+      startTime = Date.now();
+      stopwatchInterval = setInterval(() => {
+        const diff = Date.now() - startTime;
+        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        document.getElementById('stopwatch').textContent = `${h}:${m}:${s}`;
+      }, 1000);
+    }
+
+    function stopStopwatch() { clearInterval(stopwatchInterval); }
+
+    function triggerConfetti() {
+      const holder = document.getElementById('confetti-holder');
+      for (let i = 0; i < 100; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.top = '-10px';
+        p.style.backgroundColor = ['#FF9900', '#00A8E1', '#8B5CF6', '#10B981'][Math.floor(Math.random() * 4)];
+        p.style.transform = `rotate(${Math.random() * 360}deg)`;
+        holder.appendChild(p);
+
+        const duration = 2 + Math.random() * 3;
+        p.animate([
+          { transform: `translateY(0) rotate(0deg)`, opacity: 1 },
+          { transform: `translateY(100vh) rotate(720deg)`, opacity: 0 }
+        ], { duration: duration * 1000, easing: 'cubic-bezier(0, .9, .6, 1)' });
+        setTimeout(() => p.remove(), duration * 1000);
+      }
+    }
+
+    function log(msg, type) {
+      const entries = document.getElementById('log-entries');
+      if (!entries) return;
+      const div = document.createElement('div');
+      div.className = `log-entry ${type}`;
+      const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      div.innerHTML = `<span class="log-timestamp">[${time}]</span> ${msg}`;
+      entries.prepend(div);
+      if (entries.children.length > 50) entries.lastChild.remove();
+    }
+
+    // Hotkeys
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') submitRequest();
+    });
+
+    function handleDiagramUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        const b64 = ev.target.result.split(',')[1];
+        send({ type: 'image_requirement', image_b64: b64 });
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nova-architect"
+version = "2.0.0"
+description = "Build AWS infrastructure from plain English — powered by Amazon Nova"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Nova Architect" }]
+requires-python = ">=3.11"
+keywords = ["aws", "cloud", "infrastructure", "ai", "bedrock", "nova", "automation"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Build Tools",
+]
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.6",
+    "python-multipart>=0.0.9",
+    "websockets>=12.0",
+    "boto3>=1.35.0",
+    "botocore>=1.35.0",
+    "python-dotenv>=1.0.1",
+    "httpx>=0.27.0",
+    "pillow>=10.4.0",
+    "playwright>=1.54.0,<=1.56.0",
+    "rich>=13.0.0",
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "httpx>=0.27.0", "black", "ruff"]
+
+[project.urls]
+Homepage = "https://nova-architect.dev"
+Repository = "https://github.com/nova-architect/nova-architect"
+Documentation = "https://docs.nova-architect.dev"
+"Bug Tracker" = "https://github.com/nova-architect/nova-architect/issues"
+
+[project.scripts]
+nova-architect = "nova_architect.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["nova_architect*"]
+
+[tool.setuptools.package-data]
+nova_architect = ["frontend/**/*", "frontend/*", "backend/**/*", "backend/*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]

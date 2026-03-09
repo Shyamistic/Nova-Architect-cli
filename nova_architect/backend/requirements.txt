@@ -1,0 +1,25 @@
+# Nova Architect — Backend Dependencies
+
+# Web framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+websockets==12.0
+
+# AWS SDK (Bedrock, DynamoDB, S3, etc.)
+boto3==1.35.0
+botocore==1.35.0
+
+# Nova Act — browser automation
+# Install from: https://github.com/aws-samples/nova-act
+nova-act>=0.1.0
+
+# Environment management
+python-dotenv==1.0.1
+pydantic-settings==2.5.2
+
+# Utilities
+httpx==0.27.0
+pillow==10.4.0          # Image processing for screenshots
+playwright==1.46.0      # Underlying browser for Nova Act
+aiosqlite==0.20.0       # Async SQLite for build history

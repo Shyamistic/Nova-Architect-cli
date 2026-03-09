@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+recursive-include nova_architect/frontend *
+recursive-include nova_architect/backend *

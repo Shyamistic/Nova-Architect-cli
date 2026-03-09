@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+.git/
+.gitignore
+nova-architect.db
+data/
+backend/__pycache__/
+frontend/.DS_Store
+*.swp
+*.bak

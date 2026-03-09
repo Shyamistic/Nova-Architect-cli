@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  nova-architect:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - NOVA_ACT_API_KEY=${NOVA_ACT_API_KEY}
+      - NOVA_ACT_HEADLESS=${NOVA_ACT_HEADLESS:-true}
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - DATABASE_URL=/app/data/nova-architect.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3

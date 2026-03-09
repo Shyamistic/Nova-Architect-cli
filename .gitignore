@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Secrets — NEVER commit these
+.env
+*.env
+~/.nova-architect/
+
+# Database
+*.db
+
+# Nova Act session logs
+*_nova_act_logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Distribution artifacts
+dist/
+*.whl
+*.tar.gz
