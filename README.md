@@ -10,7 +10,7 @@ builds it in your AWS Console — live, in real-time.
 ## Install in 30 seconds
 
 ```bash
-pip install nova-architect
+pip install nova-architect==2.9.2
 nova-architect setup
 nova-architect start
 ```
